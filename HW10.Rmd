@@ -1,0 +1,76 @@
+---
+title: "HW10"
+author: "Matt Schwab"
+date: "4/16/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+Members: Matt Schwab
+Github: https://github.com/mschwab7/HW10.git
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(lubridate)
+accidents = read.csv("https://raw.githubusercontent.com/yumouqiu/DS202-Spring2022/main/Practice/data/fars2016/accident.csv")
+people = read.csv("https://raw.githubusercontent.com/yumouqiu/DS202-Spring2022/main/Practice/data/fars2016/person.csv")
+vehicle = read.csv('https://raw.githubusercontent.com/yumouqiu/DS202-Spring2022/main/Practice/data/fars2016/vehicle.csv')
+view(accidents)
+accidents %>% ggplot(aes(x = LONGITUD, y = LATITUDE)) + geom_point()
+accidents = accidents %>% filter(LONGITUD < 180 )
+dim(accidents)
+accidents %>% ggplot(aes(x = LONGITUD, y = LATITUDE)) + geom_point()
+view(accidents %>% filter(LONGITUD < -130))
+continental = accidents %>% filter(LONGITUD > -130)
+continental %>% ggplot(aes(x = LONGITUD, y = LATITUDE)) + geom_polygon()
+continental %>% ggplot(aes(x = LONGITUD, y = LATITUDE)) + 
+  geom_polygon(aes(group = STATE, fill = LATITUDE))
+```
+
+Part 1
+```{r}
+accidents %>% group_by(DAY_WEEK) %>% tally()
+```
+There are more accidents from Friday through Sunday (6-1) than there are during the middle of the week (2-5). This could be because people tend to party and travel more on the weekends.
+
+```{r}
+acc.hour = accidents %>% filter(HOUR <= 24) %>% group_by(HOUR) %>% tally()
+view(acc.hour)
+```
+Most accidents occur between 3pm and 10pm. This could be because this is when the most people are out on the road, either doing errands, driving home from school, partying, or driving home from work during rush hour. Either people are more attentive in the morning or there are simply fewer drivers out on the road in the beginning of the day.
+
+```{r}
+accidents %>% filter(DRUNK_DR > 0) %>% tally()
+dim(accidents)
+8676/34213
+```
+There are 8676 with at least one drunk driver.This is out of roughly 34213 recorded accidents.So a little over 25% of recorded fatal accidents include at least one drunk driver.
+
+```{r}
+drivers = people %>% filter(PER_TYP == 1)
+dim(drivers)
+dim(accidents)
+view(drivers)
+view(accidents)
+accidents = accidents  %>% filter(HOUR <= 24)
+drivers = drivers %>% filter(HOUR <= 24)
+view(anti_join(drivers, accidents, by = "ST_CASE"))
+joined = inner_join(drivers,accidents, by = "ST_CASE", all = FALSE)
+view(joined)
+
+```
+
+```{r}
+days = joined %>% group_by(DAY_WEEK) %>% tally()
+days %>% ggplot(aes(x = DAY_WEEK, y = n)) + geom_line()
+hours = joined %>% group_by(HOUR.x) %>% tally()
+hours %>% ggplot(aes(x = HOUR.x, y = n)) + geom_line()
+gender = joined %>% filter(SEX == 1 | SEX == 2) %>% group_by(SEX) %>% tally()
+gender %>% ggplot(aes(x = SEX, y = n)) + geom_col()
+```
+
